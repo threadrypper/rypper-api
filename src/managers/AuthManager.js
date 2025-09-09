@@ -10,6 +10,17 @@ const { SALT_STRING, SALT_ROUNDS } = process.env
  */
 
 /**
+ * Bearify a token if it starts with "Bearer ".
+ * @param {string} token - The token to bearify.
+ * @return {string} The bearified token.
+ */
+function bearify(token) {
+    const result = token.startsWith('Bearer ') ? token : `Bearer ${token}`
+    // console.debug('Bearified result:', result)
+    return result
+}
+
+/**
  * AuthManager class to handle authentication logic.
  */
 class AuthManager {
@@ -31,7 +42,11 @@ class AuthManager {
      */
     constructor(api, options = { bearer: true }) {
         this.api = api
-        this.options.token = scryptSync(options.token, SALT_STRING, parseInt(SALT_ROUNDS))
+        this.options.token = scryptSync(
+            options.bearer ? bearify(options.token) : options.token,
+            SALT_STRING,
+            parseInt(SALT_ROUNDS)
+        )
     }
 
     /**
@@ -40,7 +55,8 @@ class AuthManager {
      * @return {boolean} True if the tokens match, false otherwise.
      */
     compareToken(token) {
-        const hashedToken = scryptSync(token, SALT_STRING, parseInt(SALT_ROUNDS))
+        const hashedToken = scryptSync(this.options.bearer ? bearify(token) : token, SALT_STRING, parseInt(SALT_ROUNDS))
+        // console.debug([this.options.token.toString('hex'), hashedToken.toString('hex')])
         return this.options.token.toString('hex') === hashedToken.toString('hex')
     }
 }

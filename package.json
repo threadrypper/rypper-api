@@ -11,6 +11,10 @@
   "license": "MIT",
   "packageManager": "pnpm@9.15.4",
   "dependencies": {
+    "@fastify/cors": "^11.1.0",
     "easy-api.ts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1"
   }
 }
