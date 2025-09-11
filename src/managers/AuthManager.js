@@ -42,11 +42,12 @@ class AuthManager {
      */
     constructor(api, options = { bearer: true }) {
         this.api = api
-        this.options.token = scryptSync(
+        const hashedToken = scryptSync(
             options.bearer ? bearify(options.token) : options.token,
             SALT_STRING,
             parseInt(SALT_ROUNDS)
         )
+        this.options = { ...this.options, ...options, token: hashedToken }
     }
 
     /**
