@@ -1,6 +1,8 @@
 process.loadEnvFile()
 
 const cors = require('@fastify/cors')
+const helmet = require('@fastify/helmet')
+const ratelimit = require('@fastify/rate-limit')
 const { API } = require('easy-api.ts')
 const { HOST, PORT, AUTH_TOKEN } = process.env
 const { AuthManager } = require('./managers/AuthManager')
@@ -11,8 +13,12 @@ const api = new API({
     reverse: false
 })
 
-// Enable CORS
-api.app.register(cors)
+api.app.register(cors) // Enable CORS.
+api.app.register(helmet) // Important security headers.
+api.app.register(ratelimit, {
+    max: 100,
+    timeWindow: '1 minute'
+}) // Enable rate-limits to the API.
 
 // Custom 404 handler
 api.setNotFoundHandler(`
