@@ -1,5 +1,6 @@
+const { SALT_STRING, SALT_ROUNDS, JWT_SECRET_KEY } = process.env
 const { scryptSync } = require('node:crypto')
-const { SALT_STRING, SALT_ROUNDS } = process.env
+const jwt = require('jsonwebtoken')
 
 /** @import { API } from 'easy-api.ts' */
 
@@ -18,6 +19,27 @@ function bearify(token) {
     const result = token.startsWith('Bearer ') ? token : `Bearer ${token}`
     // console.debug('Bearified result:', result)
     return result
+}
+
+/**
+ * Hashifies a token.
+ * @param {string} token - The token to hashify.
+ * @param {boolean} bearer - Whether is bearer token.
+ * @returns {string}
+ */
+function hashify(token, bearer) {
+    const hashedToken = scryptSync(
+        bearer ? bearify(token) : token,
+        SALT_STRING,
+        parseInt(SALT_ROUNDS)
+    )
+
+    /**
+     * @type {string}
+     */
+    const signedToken = jwt.sign(hashedToken, JWT_SECRET_KEY)
+
+    return signedToken
 }
 
 /**
@@ -42,12 +64,11 @@ class AuthManager {
      */
     constructor(api, options = { bearer: true }) {
         this.api = api
-        const hashedToken = scryptSync(
-            options.bearer ? bearify(options.token) : options.token,
-            SALT_STRING,
-            parseInt(SALT_ROUNDS)
-        )
-        this.options = { ...this.options, ...options, token: hashedToken }
+        this.options = {
+            ...this.options,
+            ...options,
+            token: hashify(options.token, options.bearer)
+        }
     }
 
     /**
@@ -56,9 +77,8 @@ class AuthManager {
      * @return {boolean} True if the tokens match, false otherwise.
      */
     compareToken(token) {
-        const hashedToken = scryptSync(this.options.bearer ? bearify(token) : token, SALT_STRING, parseInt(SALT_ROUNDS))
-        // console.debug([this.options.token.toString('hex'), hashedToken.toString('hex')])
-        return this.options.token.toString('hex') === hashedToken.toString('hex')
+        const hashedToken = hashify(token, this.options.bearer)
+        return this.options.token === hashedToken
     }
 }
 

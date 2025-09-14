@@ -126,12 +126,12 @@ const route = {
 
             $c[Drawing the filled part of the progress bar.]
             $if[$get[currentXP]>=15;
-                $color[#00FF00]
+                $color[#FFFFFF]
                 $drawRect[$math[$get[baseTextPositionX] - 10];160;$get[progressBarWidth];30;10]
             ]
         ]
 
-        $c[Sending the RAW response.]
+        $c[Sending the image.]
         $reply[
             $setCode[201]
             $setType[canvas]
